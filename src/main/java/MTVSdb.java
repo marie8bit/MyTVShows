@@ -70,7 +70,7 @@ public class MTVSdb {
             PreparedStatement psUpdate = connection.prepareStatement(prepStatUpdate);
             System.out.println(newNalue);
             Double dNew = Double.parseDouble(newNalue);
-            //Double dOld = Double.parseDouble(oldValue);
+
 
             psUpdate.setDouble(1,dNew);
             psUpdate.setString(2,oldValue);

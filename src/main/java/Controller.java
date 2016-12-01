@@ -18,14 +18,16 @@ public class Controller {
     public static void main(String[] args) throws Exception {
 
         //for(Row row:wb)
-        InputStream inp = new FileInputStream("workbook.xls");
+        InputStream inp = new FileInputStream("D:\\oldharddrive2015\\Documents and Settings\\My Documents\\Entertainment.xlsx");
         //InputStream inp = new FileInputStream("workbook.xlsx");
 
         Workbook wb = WorkbookFactory.create(inp);
-        Sheet sheet = wb.getSheetAt(0);
-        //String title = row.getCell
+        Sheet sheet = wb.getSheetAt(2);
+        String rawTitle = sheet.getRow(1).getCell(1).getStringCellValue();
+
         // build a URL
-        String s = "http://www.omdbapi.com/?s=MacGyver&type=series";
+        String title = rawTitle.replace(" ","%20");
+        String s = "http://www.omdbapi.com/?s="+title+"&type=series";
         //s += URLEncoder.encode(addr, "UTF-8");
         URL url = new URL(s);
 

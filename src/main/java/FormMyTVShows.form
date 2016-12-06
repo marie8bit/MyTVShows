@@ -134,11 +134,12 @@
       </component>
       <component id="22de7" class="javax.swing.JTable" binding="mtsTable">
         <constraints>
-          <grid row="1" column="2" row-span="8" col-span="2" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="50"/>
-          </grid>
+          <grid row="1" column="2" row-span="8" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties/>
+        <properties>
+          <cellSelectionEnabled value="true"/>
+          <enabled value="true"/>
+        </properties>
       </component>
     </children>
   </grid>

@@ -27,7 +27,6 @@ public class FormMyTVShows extends JFrame implements WindowListener
     private JButton btnAdd;
     private JLabel lblPlot;
     private JPanel rootPanel;
-    //private JScrollPane mtsScrollPane;
     private JLabel lblInst;
     private JButton deleteButton;
     private JRadioButton addWithSpreadsheetRadioButton;
@@ -35,6 +34,7 @@ public class FormMyTVShows extends JFrame implements WindowListener
     private JLabel lblFirst;
     private JLabel lblSecond;
     private JLabel lblExt;
+    //private JScrollPane mtsJScroll;
     private Object newV;
     private Object oldV;
 
@@ -45,11 +45,18 @@ protected FormMyTVShows(TableModel tm){
     setVisible(true);
     setSize(new Dimension(1000, 1000));
     mtsTable.setModel(tm);
-    mtsTable.setGridColor(Color.BLACK);
-    mtsTable.getColumnModel().getColumn(0).setPreferredWidth(100);
-    mtsTable.getColumnModel().getColumn(1).setPreferredWidth(300);
+    //JScrollPane mtsScrollPane = new JScrollPane(mtsTable);
+    //this.add(mtsScrollPane);
+
+    //mtsTable.setGridColor(Color.BLACK);
+    //mtsTable.getColumnModel().getColumn(0).setPreferredWidth(100);
+    //mtsTable.getColumnModel().getColumn(1).setPreferredWidth(300);
+    //mtsJScroll = new JScrollPane(mtsTable);
+    //mtsScrollPane.setVisible(true);
+    //mtsTable.setVisible(true);
+    //mtsJScroll.setViewportView(mtsTable);
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-    //mtsScrollPane = new JScrollPane(mtsTable);
+
     //action listener that fires whenever editing starts or stops in a cell
     mtsTable.addPropertyChangeListener(new PropertyChangeListener() {
         @Override
@@ -173,12 +180,7 @@ protected FormMyTVShows(TableModel tm){
             xlsxRadioButton.setVisible(false);
         }
     });
-    addWithSpreadsheetRadioButton.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
 
-        }
-    });
 }
     @Override
     public void windowOpened(WindowEvent e) {

@@ -71,6 +71,9 @@ import java.sql.SQLException;
                 //Display the text of the error message in the cell
                 return sqle.toString();
             }
+            catch (NullPointerException npl){
+                return null;
+            }
 
 
         }

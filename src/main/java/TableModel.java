@@ -36,7 +36,13 @@ import java.sql.SQLException;
         }
         @Override
         public boolean isCellEditable(int col, int row){
-            if (col == 0){return false;}
+            if (col == 0) {
+                if (getValueAt(col, row).length() < 4) {
+                return true;}
+                 else {
+                    return false;
+                }
+            }
             else{return true;}
         }
 

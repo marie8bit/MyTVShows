@@ -51,6 +51,9 @@ public static String PrimaryKeyGen = "PK"+gen;
                 }
             }
         }
+        catch(NullPointerException npe){
+
+        }
         catch(Exception ex){
             ex.printStackTrace();
         }

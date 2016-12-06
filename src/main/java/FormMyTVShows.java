@@ -1,3 +1,4 @@
+import org.apache.commons.lang3.ObjectUtils;
 import org.json.JSONObject;
 
 import javax.swing.*;
@@ -128,6 +129,9 @@ protected FormMyTVShows(TableModel tm){
                 sqle.printStackTrace();
                 System.out.println("HereAdd");
                 sqle.printStackTrace();
+            }
+            catch (NullPointerException npe){
+
             }
             catch (java.lang.Exception j){
                 //provides information to the user and focuses back on the text field that generated the error

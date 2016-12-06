@@ -9,10 +9,12 @@ import java.util.Scanner;
 import java.net.URLEncoder;
 import java.util.StringJoiner;
 //import junit.framework.Assert;
+
 import org.apache.poi.ss.usermodel.*;
 
 /**
  * Created by Marie on 11/29/2016.
+ * program to read ecxel file and get JSON objects from OMDB API
  */
 public class Controller {
 public static int gen = 0;

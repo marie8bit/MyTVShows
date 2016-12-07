@@ -51,7 +51,9 @@ public static String PrimaryKeyGen = "PK"+gen;
                 } else {
                     getAPISearch(obj);
                 }
+
             }
+
         }
         catch(NullPointerException npe){
 

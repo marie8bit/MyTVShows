@@ -97,7 +97,7 @@ public class MTVSdb {
     //delete method using prepared statements returns the new resultSet
     public static ResultSet deleteRow(String primary) throws Exception {
         Connection connection = DriverManager.getConnection(DB_CONNECTION_URL, USER, PASSWORD);
-        String prepStatUpdate = "delete from active where holder = ?";
+        String prepStatUpdate = "delete from active where ID = ?";
         PreparedStatement psUpdate = connection.prepareStatement(prepStatUpdate);
         psUpdate.setString(1, primary);
         try {

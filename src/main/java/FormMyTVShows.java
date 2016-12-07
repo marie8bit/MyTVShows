@@ -85,7 +85,7 @@ protected FormMyTVShows(TableModel tm){
                         //refreshes the data in the jtable after update
                         TableModel tM = new TableModel(updateResultSet);
                         mtsTable.setModel(tM);
-                        mtsTable.getColumnModel().getColumn(0).setPreferredWidth(200);
+                        mtsTable.getColumnModel().getColumn(0).setPreferredWidth(50);
                         //mtsScrollPane = new JScrollPane(mtsTable);
 
                     } catch (Exception e) {
@@ -97,6 +97,7 @@ protected FormMyTVShows(TableModel tm){
             }
         }
     });
+
     //add button click event calls insert sql statement
     btnAdd.addActionListener(new ActionListener() {
         @Override
@@ -120,7 +121,7 @@ protected FormMyTVShows(TableModel tm){
                     TableModel tM = new TableModel(updateResultSet);
 
                     mtsTable.setModel(tM);
-                    mtsTable.getColumnModel().getColumn(0).setPreferredWidth(200);
+                    mtsTable.getColumnModel().getColumn(0).setPreferredWidth(50);
                     //mtsScrollPane = new JScrollPane(mtsTable);
                 }
 
@@ -155,7 +156,7 @@ protected FormMyTVShows(TableModel tm){
                 ResultSet updateResultSet = MTVSdb.deleteRow(primary);
                 TableModel tM = new TableModel(updateResultSet);
                 mtsTable.setModel(tM);
-                mtsTable.getColumnModel().getColumn(0).setPreferredWidth(200);
+                mtsTable.getColumnModel().getColumn(0).setPreferredWidth(50);
 
             }
             catch(SQLException s){
@@ -172,6 +173,8 @@ protected FormMyTVShows(TableModel tm){
             lblFirst.setText("Enter the full path to spreadsheet you want to import");
             lblSecond.setText("Enter the name of the spreadsheet you want to import");
             lblExt.setText("Choose a file extension");
+            xlsRadioButton.setVisible(true);
+            xlsxRadioButton.setVisible(true);
         }
     });
     addBySearchRadioButton.addActionListener(new ActionListener() {
@@ -185,7 +188,35 @@ protected FormMyTVShows(TableModel tm){
         }
     });
 
+    activeRadioButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            updateForm("active", mtsTable);
+        }
+    });
+    archiveRadioButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            updateForm("archive" , mtsTable );
+        }
+    });
 }
+    public static void updateForm(String table, JTable jt){
+        try {
+            //calls update method sends column number, new data to enter and
+            // the primary key for the sql table
+            ResultSet updateResultSet = "active".equals(table)? MTVSdb.getActive(): MTVSdb.getArchive();
+            //refreshes the data in the jtable after update
+            TableModel tM = new TableModel(updateResultSet);
+            jt.setModel(tM);
+            jt.getColumnModel().getColumn(0).setPreferredWidth(50);
+            //mtsScrollPane = new JScrollPane(mtsTable);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("here");
+        }
+    }
     @Override
     public void windowOpened(WindowEvent e) {
 

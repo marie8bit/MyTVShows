@@ -131,6 +131,8 @@ protected FormMyTVShows(TableModel tm){
                         txtPath.setText("");
                         lblInst.setText("Added entry");
                     } else {
+                        lblInst.setText("Fetching data...");
+                        lblInst.setForeground(Color.red);
                         AddAPIworker aaw = new AddAPIworker(FormMyTVShows.this ,txtName.getText(), "title" );
                         aaw.execute();
 

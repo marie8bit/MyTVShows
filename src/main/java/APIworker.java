@@ -15,37 +15,14 @@ import java.util.concurrent.ExecutionException;
 /**
  * Created by Marie on 12/8/2016.
  */
-public class APIworker extends SwingWorker<Boolean, Void> {
-    private FormMyTVShows resultListener;
-    private String path;
-    private int sheetNum;
-    private int col;
-    public APIworker (FormMyTVShows resultListener, String path, int sheetNum, int col){
-        this.resultListener = resultListener;
-        this.path= path;
-        this.sheetNum=sheetNum;
-        this.col=col;
-    }
-    @Override
-    protected Boolean doInBackground() throws Exception {
-        getSpreadsheet(resultListener, path, sheetNum, col);
-        return true;
-    }
-    @Override
-    protected void done(){
-        try {
-            boolean finished = get();
-            if (finished==true) {
-                resultListener.finish();
-            }
-        }
-        catch (ExecutionException ee){
-            ee.printStackTrace();
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-    }
+public abstract class APIworker extends SwingWorker<Boolean, Void> {
+    protected static FormMyTVShows resultListener;
+    protected String path;
+    protected int sheetNum;
+    protected int col;
+    protected String table;
+    protected String search;
+
     public static void getSpreadsheet(FormMyTVShows resultListener, String path, int sheetNum, int col) {
 
         //for(Row row:wb)
@@ -88,6 +65,7 @@ public class APIworker extends SwingWorker<Boolean, Void> {
     public static String getOMDBentry(String identifier, String searchType) throws Exception{
         String s ="";
         if ("title".equals(searchType)){
+            identifier.trim();
             identifier = identifier.replace(" ", "%20");
             s = "http://www.omdbapi.com/?s=" + identifier + "&type=series";}
         else {s = "http://www.omdbapi.com/?i=" + identifier;}
@@ -106,26 +84,95 @@ public class APIworker extends SwingWorker<Boolean, Void> {
         MTVSdb tvdb = new MTVSdb();
 
 //            if (obj.getJSONArray("Search").length() > 0) {
-        for (int x = 0; x < obj.getJSONArray("Search").length(); x++) {
-            JSONObject res = obj.getJSONArray("Search").getJSONObject(x);
-            //System.out.println(res.getString("Title") + res.getString("Year"));
-            if (res.getString("Year").length() < 6) {
-                String PKID = res.getString("imdbID");
-                //list.add or new object or SQL insert
+        try {
+            for (int x = 0; x < obj.getJSONArray("Search").length(); x++) {
+                JSONObject res = obj.getJSONArray("Search").getJSONObject(x);
+                //System.out.println(res.getString("Title") + res.getString("Year"));
+                if (res.getString("Year").length() < 6) {
+                    String PKID = res.getString("imdbID");
+                    //list.add or new object or SQL insert
 
-                String str = getOMDBentry(PKID, "ID");
-                JSONObject dbo = new JSONObject(str);
-                tvdb.addRowbyIDActive(PKID, dbo.getString("Title"),
-                        dbo.getString("Year"), dbo.getString("Plot"));
-            } else {
-                String PKID = res.getString("imdbID");
-                //list.add or new object or SQL insert
-                String str = getOMDBentry(PKID, "ID");
-                JSONObject dbo = new JSONObject(str);
-                tvdb.addRowbyIDArchive(PKID, dbo.getString("Title"),
-                        dbo.getString("Year"), dbo.getString("Plot"));
+                    String str = getOMDBentry(PKID, "ID");
+                    JSONObject dbo = new JSONObject(str);
+                    tvdb.addRowbyIDActive(PKID, dbo.getString("Title"),
+                            dbo.getString("Year"), dbo.getString("Plot"));
+                } else {
+                    getIDAPISearch(res);
+                }
+            }
+        }
+        catch (ExecutionException ee){
+            resultListener.fail();
+        }
+    }
+    public static void getIDAPISearch(JSONObject res)throws Exception{
+        String PKID = res.getString("imdbID");
+        //list.add or new object or SQL insert
+        String str = getOMDBentry(PKID, "ID");
+        JSONObject dbo = new JSONObject(str);
+        MTVSdb.addRowbyIDArchive(PKID, dbo.getString("Title"),
+                dbo.getString("Year"), dbo.getString("Plot"));
+    }
+}
+    class XAPIworker  extends APIworker {
+
+        public XAPIworker(FormMyTVShows resultListener, String path, int sheetNum, int col) {
+
+            this.resultListener = resultListener;
+            this.path = path;
+            this.sheetNum = sheetNum;
+            this.col = col;
+        }
+
+        @Override
+        protected Boolean doInBackground() throws Exception {
+            getSpreadsheet(resultListener, path, sheetNum, col);
+            return true;
+        }
+
+        @Override
+        protected void done() {
+            try {
+                boolean finished = get();
+                if (finished == true) {
+                    resultListener.finish();
+                }
+            } catch (ExecutionException ee) {
+                ee.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
     }
-}
+class AddAPIworker  extends APIworker {
+        public AddAPIworker(FormMyTVShows resultListener, String search,String table) {
+            this.resultListener = resultListener;
+            this.search= search;
+            this.table = table;
+        }
+
+        @Override
+        protected Boolean doInBackground() throws Exception {
+            String str = getOMDBentry(search, table);
+            JSONObject obj = new JSONObject(str);
+            getAPISearch(obj);
+            return true;
+        }
+
+        @Override
+        protected void done() {
+            try {
+                boolean finished = get();
+                if (finished == true) {
+                    resultListener.finish();
+                }
+
+
+            } catch (ExecutionException ee) {
+                resultListener.fail();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }

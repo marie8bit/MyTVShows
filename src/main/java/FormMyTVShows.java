@@ -127,13 +127,16 @@ protected FormMyTVShows(TableModel tm){
                         String PKID = obj.getString("imdbID");
                         MTVSdb.addRowbyIDActive(PKID, obj.getString("Title"),
                                 obj.getString("Year"), obj.getString("Plot"));
+                        updateForm("active",mtsTable);
+                        txtPath.setText("");
+                        lblInst.setText("Added entry");
                     } else {
-                        String str = APIworker.getOMDBentry(txtName.getText(), "title");
-                        JSONObject obj = new JSONObject(str);
-                        APIworker.getAPISearch(obj);
+                        AddAPIworker aaw = new AddAPIworker(FormMyTVShows.this ,txtName.getText(), "title" );
+                        aaw.execute();
+
                     }
                     //sends data from txtfields to database class to run insert query
-                    updateForm("active",mtsTable);
+
 
                     //mtsScrollPane = new JScrollPane(mtsTable);
 
@@ -154,6 +157,7 @@ protected FormMyTVShows(TableModel tm){
                 txtName.setText("");
                 txtPath.requestFocus();
                 lblInst.setText("Entry not found");
+                lblInst.setForeground(Color.red);
             }
 
         }
@@ -186,26 +190,7 @@ protected FormMyTVShows(TableModel tm){
             }
         }
     });
-//    addWithSpreadsheetRadioButton.addActionListener(new ActionListener() {
-//        @Override
-//        public void actionPerformed(ActionEvent e) {
-//            lblFirst.setText("Enter the full path to spreadsheet you want to import");
-//            lblSecond.setText("Enter the name of the spreadsheet you want to import");
-//            lblExt.setText("Choose a file extension");
-//            xlsRadioButton.setVisible(true);
-//            xlsxRadioButton.setVisible(true);
-//        }
-//    });
-//    addBySearchRadioButton.addActionListener(new ActionListener() {
-//        @Override
-//        public void actionPerformed(ActionEvent e) {
-//            lblFirst.setText("Enter IMDB ID from the internet");
-//            lblSecond.setText("Or Enter the name of the TV Show");
-//            lblExt.setText("");
-//            xlsRadioButton.setVisible(false);
-//            xlsxRadioButton.setVisible(false);
-//        }
-//    });
+
 
     activeRadioButton.addActionListener(new ActionListener() {
         @Override
@@ -224,24 +209,28 @@ protected FormMyTVShows(TableModel tm){
     archiveButton.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-            String primary = mtsTable.getValueAt(mtsTable.getSelectedRow(), 0).toString();
-            String name = mtsTable.getValueAt(mtsTable.getSelectedRow(), 1).toString();
-            String year = mtsTable.getValueAt(mtsTable.getSelectedRow(), 2).toString();
-            String plot = mtsTable.getValueAt(mtsTable.getSelectedRow(), 3).toString();
-            try {
-                MTVSdb.addRowbyIDArchive(primary, name, year, plot);
-                MTVSdb.deleteRow(primary, "active");
-                updateForm("active" , mtsTable);
-            }
-        catch (Exception ex){
-            System.out.println("archiveButton");
+            int[] selection = mtsTable.getSelectedRows();
+
+            for (int x =selection.length-1; x>=0;x--) {
+                int row = selection[x];
+                String primary = mtsTable.getValueAt(row, 0).toString();
+                String name = mtsTable.getValueAt(row, 1).toString();
+                String year = mtsTable.getValueAt(row, 2).toString();
+                String plot = mtsTable.getValueAt(row, 3).toString();
+                try {
+                    MTVSdb.addRowbyIDArchive(primary, name, year, plot);
+                    MTVSdb.deleteRow(primary, "active");
+                    updateForm("active", mtsTable);
+                } catch (Exception ex) {
+                    System.out.println("archiveButton");
+                }
             }
         }
     });
     selectSpreadsheetButton.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
-//            //todo use file picker
+
 //            public void selectFile() {
             //source Fred from class and website accessed 12/7/16
             //http://www.codejava.net/java-se/swing/show-simple-open-file-dialog-using-jfilechooser
@@ -263,7 +252,7 @@ protected FormMyTVShows(TableModel tm){
 
                         lblInst.setText("Fetching data...");
                         lblInst.setForeground(Color.red);
-                        APIworker worker = new APIworker(FormMyTVShows.this, file, sheet, col);
+                        XAPIworker worker = new XAPIworker(FormMyTVShows.this, file, sheet, col);
                         worker.execute();
                 }
             }
@@ -274,6 +263,8 @@ protected FormMyTVShows(TableModel tm){
     public void finish(){
             String table = activeRadioButton.isSelected()?"active": "archive";
             lblInst.setText("Items Fetched");
+            txtPath.setText("");
+            txtName.setText("");
             lblInst.setForeground(Color.green);
             updateForm(table, mtsTable);
     }
@@ -337,4 +328,12 @@ protected FormMyTVShows(TableModel tm){
 
     }
 
+    public void fail() {
+        //j.printStackTrace();
+        txtPath.setText("");
+        txtName.setText("");
+        txtPath.requestFocus();
+        lblInst.setText("Entry not found");
+        lblInst.setForeground(Color.red);
+    }
 }

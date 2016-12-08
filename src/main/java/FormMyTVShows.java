@@ -1,15 +1,13 @@
-import org.apache.commons.lang3.ObjectUtils;
 import org.json.JSONObject;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableCellEditor;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -35,6 +33,15 @@ public class FormMyTVShows extends JFrame implements WindowListener
     private JLabel lblFirst;
     private JLabel lblSecond;
     private JLabel lblExt;
+    private JButton archiveButton;
+    private JLabel lblName1;
+    private JButton selectSpreadsheetButton;
+    private JComboBox cbxSheet;
+    private JComboBox cbxCol;
+    private JLabel lblX;
+    private JScrollPane jScrollPane;
+    private JLabel lblFetch;
+    private JTextArea taName;
     //private JScrollPane mtsJScroll;
     private Object newV;
     private Object oldV;
@@ -44,8 +51,10 @@ protected FormMyTVShows(TableModel tm){
     pack();
     addWindowListener(this);
     setVisible(true);
-    setSize(new Dimension(1000, 1000));
+    setSize(new Dimension(1000, 700));
+
     mtsTable.setModel(tm);
+    setTableColumns();
     //JScrollPane mtsScrollPane = new JScrollPane(mtsTable);
     //this.add(mtsScrollPane);
 
@@ -59,43 +68,50 @@ protected FormMyTVShows(TableModel tm){
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
     //action listener that fires whenever editing starts or stops in a cell
+
+//    listSelectionModel = list.getSelectionModel();
+//    listSelectionModel.addListSelectionListener(
+//            new SharedListSelectionHandler());
     mtsTable.addPropertyChangeListener(new PropertyChangeListener() {
+
         @Override
-        public void propertyChange(PropertyChangeEvent evt) {
+        public void propertyChange(PropertyChangeEvent evt){
             //action listener to allow for changes to the database when changes are made in the jtable
-            if ( "tableCellEditor".equals(evt.getPropertyName())) {
-                String primary = mtsTable.getValueAt(mtsTable.getSelectedRow(), 0).toString();
-                newV = evt.getNewValue();//used for testing
-                oldV = evt.getOldValue();
-                //ignores property change editor when the cell begins editing
-                if (oldV != null) {
-                    //coverts event object into table cell editor object
-                    TableCellEditor oldVal = (TableCellEditor) oldV;
-                    //Object s = oldVal.getCellEditorValue();
-                    //gets text value from object
-                    String newValue = oldVal.getCellEditorValue().toString();
-                    int col = mtsTable.getSelectedColumn();
-                    int rw =mtsTable.getSelectedRow();
-
-                    String oldValue = mtsTable.getValueAt(rw,col).toString();//used for testing
-                    try {
-                        //calls update method sends column number, new data to enter and
-                        // the primary key for the sql table
-                        ResultSet updateResultSet = MTVSdb.getActive();
-                        //refreshes the data in the jtable after update
-                        TableModel tM = new TableModel(updateResultSet);
-                        mtsTable.setModel(tM);
-                        mtsTable.getColumnModel().getColumn(0).setPreferredWidth(50);
-                        //mtsScrollPane = new JScrollPane(mtsTable);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        System.out.println("here");
+            String table =activeRadioButton.isSelected()?"active":"archive";
+            if ("tableCellEditor".equals(evt.getPropertyName())) {
+                    String primary = mtsTable.getValueAt(mtsTable.getSelectedRow(), 0).toString();
+                    newV = evt.getNewValue();//used for testing
+                    oldV = evt.getOldValue();
+                    //ignores property change editor when the cell begins editing
+                    if (oldV != null) {
+                        //coverts event object into table cell editor object
+                        TableCellEditor oldVal = (TableCellEditor) oldV;
+                        //Object s = oldVal.getCellEditorValue();
+                        //gets text value from object
+                        String newValue = oldVal.getCellEditorValue().toString();
+                        int col = mtsTable.getSelectedColumn();
+                        int rw = mtsTable.getSelectedRow();
+                        //String oldValue = mtsTable.getValueAt(rw, col).toString();//used for testing
+                        try {
+//                            //calls update method sends column number, new data to enter and
+//                            // the primary key for the sql table
+//                            ResultSet updateResultSet = MTVSdb.getActive();
+//                            //refreshes the data in the jtable after update
+//                            TableModel tM = new TableModel(updateResultSet);
+//                            mtsTable.setModel(tM);
+//                            mtsTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+//                            //mtsScrollPane = new JScrollPane(mtsTable);
+                        MTVSdb.getPrepStatement(col, newValue, primary, table);
+                        updateForm(table, mtsTable);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            System.out.println("here");
+                        }
                     }
-                }
 
+                }
             }
-        }
+
     });
 
     //add button click event calls insert sql statement
@@ -104,26 +120,23 @@ protected FormMyTVShows(TableModel tm){
         public void actionPerformed(ActionEvent e) {
             try
             {
-                if (addWithSpreadsheetRadioButton.isSelected()) {
-                    Controller.getSpreadsheet(txtPath.getText(), txtName.getText(), xlsRadioButton.isSelected() ? ".xls" : ".xlsx");
-                } else {
-                    if (txtPath.getText() != null) {
-                        String str = Controller.getOMDBentry(txtPath.getText(), "ID");
+
+                    if (!txtPath.getText().equals("")) {
+                        String str = APIworker.getOMDBentry(txtPath.getText(), "ID");
                         JSONObject obj = new JSONObject(str);
-                        Controller.getAPISearch(obj);
+                        String PKID = obj.getString("imdbID");
+                        MTVSdb.addRowbyIDActive(PKID, obj.getString("Title"),
+                                obj.getString("Year"), obj.getString("Plot"));
                     } else {
-                        String str = Controller.getOMDBentry(txtName.getText(), "Title");
+                        String str = APIworker.getOMDBentry(txtName.getText(), "title");
                         JSONObject obj = new JSONObject(str);
-                        Controller.getAPISearch(obj);
+                        APIworker.getAPISearch(obj);
                     }
                     //sends data from txtfields to database class to run insert query
-                    ResultSet updateResultSet = MTVSdb.getActive();
-                    TableModel tM = new TableModel(updateResultSet);
+                    updateForm("active",mtsTable);
 
-                    mtsTable.setModel(tM);
-                    mtsTable.getColumnModel().getColumn(0).setPreferredWidth(50);
                     //mtsScrollPane = new JScrollPane(mtsTable);
-                }
+
 
             }
             catch(SQLException sqle){
@@ -132,10 +145,11 @@ protected FormMyTVShows(TableModel tm){
                 sqle.printStackTrace();
             }
             catch (NullPointerException npe){
-
+                npe.printStackTrace();
             }
             catch (java.lang.Exception j){
                 //provides information to the user and focuses back on the text field that generated the error
+                j.printStackTrace();
                 txtPath.setText("");
                 txtName.setText("");
                 txtPath.requestFocus();
@@ -150,68 +164,138 @@ protected FormMyTVShows(TableModel tm){
         @Override
         public void actionPerformed(ActionEvent e) {
             //gets primary key for safe editing
-            String primary = mtsTable.getValueAt(mtsTable.getSelectedRow(), 0).toString();
-            try {
-                //gets new resultset after row nas been deleted and formats the jtable column dimensions
-                ResultSet updateResultSet = MTVSdb.deleteRow(primary);
-                TableModel tM = new TableModel(updateResultSet);
-                mtsTable.setModel(tM);
-                mtsTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+            int[] selection = mtsTable.getSelectedRows();
 
-            }
-            catch(SQLException s){
-                System.out.println("HereDelete");
-            }
-            catch (java.lang.Exception j){
-                System.out.println("whaa?");
+            for (int x =selection.length-1; x>=0;x--) {
+                String primary = mtsTable.getValueAt(selection[x],0).toString();
+                String table = activeRadioButton.isSelected() ? "active" : "archive";
+                try {
+
+                    //gets new resultset after row nas been deleted and formats the jtable column dimensions
+                    MTVSdb.deleteRow(primary, table);
+
+                }
+//            catch(SQLException s){
+//                System.out.println("HereDelete");
+//            }
+                catch (java.lang.Exception j) {
+                    j.printStackTrace();
+                    System.out.println("whaa?");
+                }
+                updateForm(table, mtsTable);
             }
         }
     });
-    addWithSpreadsheetRadioButton.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            lblFirst.setText("Enter the full path to spreadsheet you want to import");
-            lblSecond.setText("Enter the name of the spreadsheet you want to import");
-            lblExt.setText("Choose a file extension");
-            xlsRadioButton.setVisible(true);
-            xlsxRadioButton.setVisible(true);
-        }
-    });
-    addBySearchRadioButton.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            lblFirst.setText("Enter IMDB ID from the internet");
-            lblSecond.setText("Or Enter the name of the TV Show");
-            lblExt.setText("");
-            xlsRadioButton.setVisible(false);
-            xlsxRadioButton.setVisible(false);
-        }
-    });
+//    addWithSpreadsheetRadioButton.addActionListener(new ActionListener() {
+//        @Override
+//        public void actionPerformed(ActionEvent e) {
+//            lblFirst.setText("Enter the full path to spreadsheet you want to import");
+//            lblSecond.setText("Enter the name of the spreadsheet you want to import");
+//            lblExt.setText("Choose a file extension");
+//            xlsRadioButton.setVisible(true);
+//            xlsxRadioButton.setVisible(true);
+//        }
+//    });
+//    addBySearchRadioButton.addActionListener(new ActionListener() {
+//        @Override
+//        public void actionPerformed(ActionEvent e) {
+//            lblFirst.setText("Enter IMDB ID from the internet");
+//            lblSecond.setText("Or Enter the name of the TV Show");
+//            lblExt.setText("");
+//            xlsRadioButton.setVisible(false);
+//            xlsxRadioButton.setVisible(false);
+//        }
+//    });
 
     activeRadioButton.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
             updateForm("active", mtsTable);
+            archiveButton.setVisible(true);
         }
     });
     archiveRadioButton.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
             updateForm("archive" , mtsTable );
+            archiveButton.setVisible(false);
+        }
+    });
+    archiveButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String primary = mtsTable.getValueAt(mtsTable.getSelectedRow(), 0).toString();
+            String name = mtsTable.getValueAt(mtsTable.getSelectedRow(), 1).toString();
+            String year = mtsTable.getValueAt(mtsTable.getSelectedRow(), 2).toString();
+            String plot = mtsTable.getValueAt(mtsTable.getSelectedRow(), 3).toString();
+            try {
+                MTVSdb.addRowbyIDArchive(primary, name, year, plot);
+                MTVSdb.deleteRow(primary, "active");
+                updateForm("active" , mtsTable);
+            }
+        catch (Exception ex){
+            System.out.println("archiveButton");
+            }
+        }
+    });
+    selectSpreadsheetButton.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+//            //todo use file picker
+//            public void selectFile() {
+            //source Fred from class and website accessed 12/7/16
+            //http://www.codejava.net/java-se/swing/show-simple-open-file-dialog-using-jfilechooser
+            if(cbxCol.getSelectedIndex()==0||cbxSheet.getSelectedIndex()==0) {
+                lblX.setText("Select sheet and column number");
+                }
+                else{
+                    JFileChooser chooser = new JFileChooser();
+                    Component parent = chooser.getParent();
+                    FileNameExtensionFilter filter = new FileNameExtensionFilter("Excel", "xls", "xlsx");
+                    chooser.setFileFilter(filter);
+                    int returnVal = chooser.showOpenDialog(parent);
+                    if (returnVal == JFileChooser.APPROVE_OPTION) {
+                        chooser.setCurrentDirectory(new java.io.File("user.home"));
+                        File f = chooser.getSelectedFile();
+                        String file = f.getAbsolutePath();
+                        int col = (Integer.parseInt(cbxCol.getSelectedItem().toString()))-1;
+                        int sheet = (Integer.parseInt(cbxSheet.getSelectedItem().toString()))-1;
+
+                        lblInst.setText("Fetching data...");
+                        lblInst.setForeground(Color.red);
+                        APIworker worker = new APIworker(FormMyTVShows.this, file, sheet, col);
+                        worker.execute();
+                }
+            }
+            updateForm("active", mtsTable);
         }
     });
 }
-    public static void updateForm(String table, JTable jt){
+    public void finish(){
+            String table = activeRadioButton.isSelected()?"active": "archive";
+            lblInst.setText("Items Fetched");
+            lblInst.setForeground(Color.green);
+            updateForm(table, mtsTable);
+    }
+    private void setTableColumns() {
+        mtsTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+        mtsTable.getColumnModel().getColumn(1).setPreferredWidth(150);
+        mtsTable.getColumnModel().getColumn(2).setPreferredWidth(80);
+        mtsTable.getColumnModel().getColumn(3).setPreferredWidth(350);
+    }
+
+    public void updateForm(String table, JTable jt){
         try {
             //calls update method sends column number, new data to enter and
             // the primary key for the sql table
-            ResultSet updateResultSet = "active".equals(table)? MTVSdb.getActive(): MTVSdb.getArchive();
+            ResultSet updateResultSet = MTVSdb.getResultSet("active".equals(table)? table: "archive" );
             //refreshes the data in the jtable after update
             TableModel tM = new TableModel(updateResultSet);
             jt.setModel(tM);
-            jt.getColumnModel().getColumn(0).setPreferredWidth(50);
-            //mtsScrollPane = new JScrollPane(mtsTable);
 
+            //mtsScrollPane = new JScrollPane(mtsTable);
+            this.setTableColumns();
+            //lblInst.setText("Fetched table");
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("here");
@@ -252,4 +336,5 @@ protected FormMyTVShows(TableModel tm){
     public void windowDeactivated(WindowEvent e) {
 
     }
+
 }

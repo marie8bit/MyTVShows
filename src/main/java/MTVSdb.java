@@ -28,50 +28,48 @@ public class MTVSdb {
         connection.close();
     }
 
-    public static ResultSet getActive() throws Exception {
+    public static ResultSet getResultSet(String table) throws Exception {
         Connection connection = DriverManager.getConnection(DB_CONNECTION_URL, USER, PASSWORD);
         //generate prepared statement for filling in DB
-        String getAcResultsQuery = "Select * from active";
-        PreparedStatement getAcResultsStatement = connection.prepareStatement(getAcResultsQuery);
+        String getResultsQuery = "Select * from "+table;
+        PreparedStatement getAcResultsStatement = connection.prepareStatement(getResultsQuery);
         //get result set from table
         ResultSet acrs = getAcResultsStatement.executeQuery();
         //connection.close();
         return acrs;
     }
 
-    public static ResultSet getArchive() throws Exception {
-        Connection connection = DriverManager.getConnection(DB_CONNECTION_URL, USER, PASSWORD);
-        String getArResultsQuery = "Select * from archive";
-        PreparedStatement getArResultsStatement = connection.prepareStatement(getArResultsQuery);
-        //get result set from table
-        ResultSet arrs = getArResultsStatement.executeQuery();
-        //connection.close();
-        return arrs;
-    }
-
     //update method for database object
-    public static ResultSet updateResultSet(int column, String newID, String old) throws Exception {
+    public static void getPrepStatement( int column,String newItem, String primary, String table )throws Exception{
+        String prepStatUpdate;
+        if (column==2) {
+            //different sql updates depending on which column is edited using prepared statements
+            prepStatUpdate = "update "+table+" set year = ? where ID = ?";
+        }
+        else if (column == 3){
+            prepStatUpdate = "update "+table+" set plot = ? where ID = ?";
+        }
+        else{return;}
+        updateResultSet(prepStatUpdate, newItem, primary);
+    }
+    public static void updateResultSet(String prepStatUpdate, String newItem, String primary) throws Exception {
         Connection connection = DriverManager.getConnection(DB_CONNECTION_URL, USER, PASSWORD);
 
         //Connection connection = Controller.connection;
-//        if (column==0){
-//            this.getOMDentry;
-//        }
-//        if (column==1){
-        //different sql updates depending on which column is edited using prepared statements
-        String prepStatUpdate = "update active set ID = ? where ID = ?";
+
+
         PreparedStatement psUpdate = connection.prepareStatement(prepStatUpdate);
-        psUpdate.setString(1, newID);
-        psUpdate.setString(2, old);
+        psUpdate.setString(1, newItem);
+        psUpdate.setString(2, primary);
         try {
             psUpdate.executeUpdate();
         } catch (SQLException sq) {
             System.out.println("here2");
         }
         //return new result set to gui form
-        ResultSet rs = getActive();
+        //ResultSet rs = getActive();
         //connection.close();
-        return rs;
+        //return rs;
 //        }
 //        else{
 //            String prepStatUpdate = "update active set ID = ?  where ID = ?";
@@ -95,9 +93,9 @@ public class MTVSdb {
     }
 
     //delete method using prepared statements returns the new resultSet
-    public static ResultSet deleteRow(String primary) throws Exception {
+    public static void deleteRow(String primary, String table) throws Exception {
         Connection connection = DriverManager.getConnection(DB_CONNECTION_URL, USER, PASSWORD);
-        String prepStatUpdate = "delete from active where ID = ?";
+        String prepStatUpdate = "active".equals(table)?"delete from active where ID = ?":"delete from archive where ID = ?";
         PreparedStatement psUpdate = connection.prepareStatement(prepStatUpdate);
         psUpdate.setString(1, primary);
         try {
@@ -105,9 +103,9 @@ public class MTVSdb {
         } catch (SQLException sq) {
             System.out.println("here4");
         }
-        ResultSet rs = getActive();
-        //connection.close();
-        return rs;
+
+        connection.close();
+
 
 
     }

@@ -3,7 +3,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Created by Marie on 11/29/2016.
+ * Recieved from Clara James for MCTC Fall 16 Java2545-01
  */
     public class TableModel extends AbstractTableModel {
         ResultSet resultSet;
@@ -12,11 +12,10 @@ import java.sql.SQLException;
 
         //Constructor - use a ResultSet to work out how many rows and columns we have.
         TableModel(ResultSet rs) {
-            resultSet = rs;
-            //resultSet.beforeFirst();
-            //Figure out number of rows in the ResultSet
             try {
-
+            resultSet = rs;
+            resultSet.beforeFirst();
+            //Figure out number of rows in the ResultSet
                 //Calculate number of rows. Have to loop over result set and count the number of iterations
                 resultSet.beforeFirst();
                 numberOfRows = 0;

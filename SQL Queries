@@ -1,0 +1,9 @@
+create database mytvshowsdb;
+
+grant user
+use mytvshowsdb;
+GRANT create, read, write, delete, update, insert ON mytvshowsdb.* TO 'Marie'@'localhost'
+
+use mytvshowsdb;
+drop table active;
+drop table archive;
